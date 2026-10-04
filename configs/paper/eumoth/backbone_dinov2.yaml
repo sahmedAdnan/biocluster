@@ -1,0 +1,79 @@
+# ===========================================================================
+# EU-Moth  x  DINOv2
+#
+# Reproduces one row of Table 3 (tab:backbones): the backbone comparison under
+# HDBSCAN, each backbone at its own selected reduction.
+#
+#   Reduction      : UMAP-20
+#   HDBSCAN        : min_cluster_size=3, min_samples=2, selection=eom
+#   Reported ARI   : 0.458
+#   Reported NMI   : 0.843
+#   Reported Hung. : 0.577
+#   Clusters       : 219 (reference partition has 200)
+#   Noise          : 20.5%
+#
+# Single fixed run.
+# Curated light-trap imagery, ~11 images per species.
+#
+# Settings come from the logged run in run_history.csv.
+#
+# CAVEAT: the published row mixes two sweep runs. ARI 0.458 fits both
+# min_dist 0.15 (223 clusters, 20.50% noise) and min_dist 0.20 (219
+# clusters, 21.09% noise), but the printed cluster count comes from the
+# first and the printed noise from the second. This config uses 0.20 to
+# match the cluster count, so expect 21.09% noise rather than 20.5%.
+# ===========================================================================
+
+dataset:
+  name: eumoth
+  format: imagefolder
+  root: /path/to/dataset        # <-- folder of 200 species subfolders
+  image_extensions: [jpg, jpeg, png, webp]
+  num_classes: 200
+
+model:
+  name: dinov2
+  pretrained: vit_large_patch14_dinov2.lvd142m
+  normalize_embeddings: true
+  batch_size: 32
+  num_workers: 4
+  global_pool: token          # CLS token, per the paper footnote
+
+  # No text encoder: this backbone can cluster but cannot name clusters.
+
+reduction:
+  method: umap
+  n_components: 20
+  n_neighbors: 15
+  min_dist: 0.2
+  metric: cosine
+
+# HDBSCAN only: it finds the cluster count itself and supplies the
+# membership probability the uncertainty score needs.
+clustering:
+  methods:
+    - name: hdbscan
+      min_cluster_size: 3
+      min_samples: 2
+      cluster_selection_method: eom
+
+hdbscan:
+  sweep_range: [3]          # the published value, not a sweep
+  cluster_selection_method: eom
+
+evaluation:
+  top_k_confusion: 20
+
+visualization:
+  method: umap
+  umap:
+    n_neighbors: 30
+    min_dist: 0.1
+    metric: cosine
+    random_state: 42
+  subsample: 5000
+  dpi: 300
+  export_pdf: true
+
+output_dir: results/paper/eumoth/backbone_dinov2
+seed: 42

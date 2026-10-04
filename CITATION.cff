@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "BioCluster: unsupervised species discovery and confidence-tiered annotation for biological image collections"
+version: 0.1.0
+authors:
+  - family-names: Ahmed
+    given-names: Shakil
+license: MIT
+repository-code: "https://github.com/sahmedAdnan/biocluster"
+keywords:
+  - biodiversity
+  - clustering
+  - BioCLIP
+  - species identification

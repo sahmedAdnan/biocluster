@@ -1,0 +1,118 @@
+# ===========================================================================
+# DK-Moth (sub)  -  all six clustering algorithms  (BioCLIP 2, ViT-H/14)
+#
+# Reproduces one block of Table 2 (tab:clustering): the per-method comparison
+# on a fixed backbone and reduction, so only the algorithm varies.
+#
+#   Reduction : UMAP-20
+#   Fixed-K   : K = 248 (the known species count)
+#   DBSCAN    : eps=0.12, min_samples=3
+#   HDBSCAN   : min_cluster_size=4, min_samples=3, selection=leaf
+#
+# Mean over ten subsamples in the paper; this config runs ONE of them.
+#
+# Noise points are excluded from ARI/NMI/Hungarian, so read every score beside
+# the noise fraction: a method that abstains more is graded on an easier
+# subset.
+# ===========================================================================
+
+dataset:
+  name: mothdk
+  format: imagefolder
+  root: /path/to/dataset        # <-- one balanced subsample folder, e.g. DK-moth_run01_seed42
+  image_extensions: [jpg, jpeg, png, webp]
+  num_classes: 248
+
+model:
+  name: bioclip2.5
+  pretrained: hf-hub:imageomics/bioclip-2.5-vith14
+  normalize_embeddings: true
+  batch_size: 32
+  num_workers: 4
+
+  # Ranks missing from the taxonomy are dropped from the prompt.
+  prompt_templates:
+    - "a photo of {order} {family} {genus} {name}"
+
+reduction:
+  method: umap
+  n_components: 20
+  n_neighbors: 15
+  min_dist: 0.15
+  metric: cosine
+
+clustering:
+  methods:
+    - name: kmeans
+      n_clusters: 248
+      n_init: 50
+      max_iter: 500
+      random_state: 42
+
+    - name: agglomerative
+      n_clusters: 248
+      linkage: ward
+
+    - name: spectral
+      n_clusters: 248
+      n_neighbors: 15
+
+    - name: gmm
+      n_clusters: 248
+      covariance_type: diag
+      max_iter: 300
+      random_state: 42
+
+    - name: dbscan
+      eps: 0.12
+      min_samples: 3
+
+    - name: hdbscan
+      min_cluster_size: 4
+      min_samples: 3
+      cluster_selection_method: leaf
+
+# eps is an absolute radius, so it is valid only for the reduction above.
+# Re-derive it with scripts/pick_dbscan_eps.py if you change that.
+dbscan:
+  eps: 0.12
+  min_samples: 3
+
+hdbscan:
+  sweep_range: [4]
+  cluster_selection_method: leaf
+
+evaluation:
+  top_k_confusion: 20
+
+visualization:
+  method: umap
+  umap:
+    n_neighbors: 30
+    min_dist: 0.1
+    metric: cosine
+    random_state: 42
+  subsample: 5000
+  dpi: 300
+  export_pdf: true
+
+annotation:
+  species_source: dataset       # candidates = the dataset's class names
+  taxonomy_source: names        # genus parsed from the name; no network
+  # taxonomy_file: path/to/classes_with_family.csv   # adds family and order
+
+  uncertainty:
+    # Absolute, not percentile.
+    review_threshold: 0.55      # combined >= 0.55 -> review
+    human_threshold: 0.70       # combined >= 0.70 -> human_required
+    weights:
+      text_margin: 0.35
+      membership_probability: 0.25
+      cluster_agreement: 0.25
+      taxonomic_consistency: 0.15
+
+  include_sanity_check: true
+  n_sanity: 25
+
+output_dir: results/paper/dkmoth_sub/clustering_comparison
+seed: 42

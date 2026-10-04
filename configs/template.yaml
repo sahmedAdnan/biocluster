@@ -1,0 +1,95 @@
+# ===========================================================================
+# Template for a new dataset. Copy, set `dataset.root`, and adjust.
+#
+# Only `dataset.root` has no sensible default. Everything else below is a
+# working starting point; the comments say what to change and why.
+# ===========================================================================
+
+dataset:
+  name: my_dataset
+  format: imagefolder          # one subfolder per class
+                               # (unlabelled data: use the desktop app)
+  root: /path/to/dataset       # <-- the only required edit
+  image_extensions: [jpg, jpeg, png, webp]
+  num_classes: 0               # 0 when unknown; only the fixed-K methods need it
+
+model:
+  name: bioclip2.5             # bioclip2.5 | bioclip2 | bioclip | clip | dinov2 | dinov3
+  pretrained: hf-hub:imageomics/bioclip-2.5-vith14
+  normalize_embeddings: true
+  batch_size: 32               # lower this if the GPU runs out of memory
+  num_workers: 4
+
+  prompt_templates:
+    - "a photo of {order} {family} {genus} {name}"
+
+reduction:
+  # UMAP-20 for trap imagery, PCA-150+UMAP-5 for large curated sets.
+  method: umap                 # none | pca | umap | pca+umap
+  n_components: 20
+  n_neighbors: 15              # raise to ~70 when there are many images per class
+  min_dist: 0.15
+  metric: cosine
+
+clustering:
+  methods:
+    - name: hdbscan
+      # Scale to the smallest species you expect: we used 4 at about 10
+      # images per class, 70 at 200.
+      min_cluster_size: 5
+      min_samples: 3
+      cluster_selection_method: eom    # eom on clean imagery, leaf on camera traps
+
+hdbscan:
+  sweep_range: [3, 5, 7, 10, 15]      # swept, scored by ARI x (1 - noise)
+  cluster_selection_method: eom
+
+evaluation:
+  top_k_confusion: 20
+
+visualization:
+  method: umap
+  umap:
+    n_neighbors: 30
+    min_dist: 0.1
+    metric: cosine
+    random_state: 42
+  subsample: 5000
+  dpi: 300
+  export_pdf: true
+
+annotation:
+  species_source: dataset      # dataset | file | gbif
+  taxonomy_source: names       # names (offline) | gbif (network)
+  # species_file: path/to/checklist.csv
+  # taxonomy_file: path/to/classes_with_family.csv
+
+  # Reference photographs in the review report. dataset uses this collection's
+  # own class directories, so it needs labels and is not an independent check.
+  # gbif fetches photographs of the proposed species. See docs/PIPELINE.md.
+  reference_source: dataset    # dataset | gbif
+
+  gbif:
+    taxon_key: 797             # species_source: gbif. 797 = Lepidoptera
+    limit: 500                 # species_source: gbif, candidates to fetch
+    kingdom: Animalia          # taxonomy_source / reference_source: gbif
+    cache_dir: .cache/gbif
+    reference_images: 3        # photographs per species
+    # Darwin Core lifeStage values. Unfiltered, GBIF returns mostly larvae for
+    # moths. Adult and Imago both mean the insect adult.
+    life_stages: [Adult, Imago]
+
+  uncertainty:
+    review_threshold: 0.55
+    human_threshold: 0.70
+    weights:
+      text_margin: 0.35
+      membership_probability: 0.25
+      cluster_agreement: 0.25
+      taxonomic_consistency: 0.15
+
+  include_sanity_check: true
+  n_sanity: 25
+
+output_dir: results/my_dataset
+seed: 42

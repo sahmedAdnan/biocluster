@@ -1,0 +1,7 @@
+# Normalise line endings so Windows checkouts do not produce CRLF diffs
+* text=auto eol=lf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.npz binary

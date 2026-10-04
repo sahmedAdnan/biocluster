@@ -1,0 +1,56 @@
+# Byte-code / build
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Data, model weights, and anything derived from a run -- never committed.
+# The leading slash on /data/ matters: unanchored, it also matches
+# src/biocluster/data/, which is the dataset-loading package every entry point
+# imports. Without the anchor the package is silently absent from a clone.
+/data/
+datasets/
+demo_data/
+results/
+outputs/
+*.npz
+*.npy
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Local run configs with real dataset paths
+runs/
+
+# Run artefacts
+run_history.csv
+autosave_*.json
+startup_error.log
+*.log
+feature_cache/
+
+# Large rendered reports
+*review*.html
+*_report.html
+
+# Notebooks: keep the code, drop the executed state
+.ipynb_checkpoints/
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

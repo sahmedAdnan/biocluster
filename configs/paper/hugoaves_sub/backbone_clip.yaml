@@ -1,0 +1,95 @@
+# ===========================================================================
+# HUGO-Bench Aves (sub)  x  CLIP
+#
+# Reproduces one row of Table 3 (tab:backbones): the backbone comparison under
+# HDBSCAN, each backbone at its own selected reduction.
+#
+#   Reduction      : UMAP-10
+#   HDBSCAN        : min_cluster_size=70, min_samples=7, selection=leaf
+#   Reported ARI   : 0.676
+#   Reported NMI   : 0.812
+#   Reported Hung. : 0.751
+#   Clusters       : 28 (reference partition has 30)
+#   Noise          : 34.7%
+#
+# Mean over ten subsamples in the paper; this config runs ONE of them.
+# Camera-trap imagery. The paper reports the mean over ten subsamples of
+# exactly 200 images from each of 30 classes, matching the original HUGO-
+# Bench protocol.
+#
+# Settings come from the logged run in run_history.csv.
+# ===========================================================================
+
+dataset:
+  name: hugoaves
+  format: imagefolder
+  root: /path/to/dataset        # <-- one balanced subsample folder, e.g. aves_200_run0
+  image_extensions: [jpg, jpeg, png, webp]
+  num_classes: 30
+
+model:
+  name: clip
+  pretrained: openai
+  arch: ViT-L-14             # 'openai' alone does not name an architecture
+  normalize_embeddings: true
+  batch_size: 32
+  num_workers: 4
+
+  # Ranks missing from the taxonomy are dropped from the prompt.
+  prompt_templates:
+    - "a photo of {order} {family} {genus} {name}"
+
+reduction:
+  method: umap
+  n_components: 10
+  n_neighbors: 70
+  min_dist: 0.25
+  metric: cosine
+
+# HDBSCAN only: it finds the cluster count itself and supplies the
+# membership probability the uncertainty score needs.
+clustering:
+  methods:
+    - name: hdbscan
+      min_cluster_size: 70
+      min_samples: 7
+      cluster_selection_method: leaf
+
+hdbscan:
+  sweep_range: [70]          # the published value, not a sweep
+  cluster_selection_method: leaf
+
+evaluation:
+  top_k_confusion: 20
+
+visualization:
+  method: umap
+  umap:
+    n_neighbors: 30
+    min_dist: 0.1
+    metric: cosine
+    random_state: 42
+  subsample: 5000
+  dpi: 300
+  export_pdf: true
+
+annotation:
+  species_source: dataset       # candidates = the dataset's class names
+  taxonomy_source: names        # genus parsed from the name; no network
+  # taxonomy_file: path/to/classes_with_family.csv   # adds family and order
+
+  uncertainty:
+    # Absolute, not percentile.
+    review_threshold: 0.55      # combined >= 0.55 -> review
+    human_threshold: 0.70       # combined >= 0.70 -> human_required
+    weights:
+      text_margin: 0.35
+      membership_probability: 0.25
+      cluster_agreement: 0.25
+      taxonomic_consistency: 0.15
+
+  include_sanity_check: true
+  n_sanity: 25
+
+output_dir: results/paper/hugoaves_sub/backbone_clip
+seed: 42

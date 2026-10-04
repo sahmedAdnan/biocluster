@@ -1,0 +1,93 @@
+# ===========================================================================
+# CUB-200-2011  x  BioCLIP
+#
+# Reproduces one row of Table 3 (tab:backbones): the backbone comparison under
+# HDBSCAN, each backbone at its own selected reduction.
+#
+#   Reduction      : PCA-100+UMAP-5
+#   HDBSCAN        : min_cluster_size=10, min_samples=10, selection=eom
+#   Reported ARI   : 0.780
+#   Reported NMI   : 0.936
+#   Reported Hung. : 0.827
+#   Clusters       : 190 (reference partition has 200)
+#   Noise          : 6.17%
+#
+# Single fixed run.
+# Curated benchmark, ~59 images per species.
+#
+# Settings come from the logged run in run_history.csv.
+# ===========================================================================
+
+dataset:
+  name: cub200
+  format: imagefolder
+  root: /path/to/dataset        # <-- CUB_200_2011 images folder (200 species subfolders)
+  image_extensions: [jpg, jpeg, png, webp]
+  num_classes: 200
+
+model:
+  name: bioclip
+  pretrained: hf-hub:imageomics/bioclip
+  normalize_embeddings: true
+  batch_size: 32
+  num_workers: 4
+
+  # Ranks missing from the taxonomy are dropped from the prompt.
+  prompt_templates:
+    - "a photo of {order} {family} {genus} {name}"
+
+reduction:
+  method: pca+umap
+  n_components: 5
+  pca_components: 100       # linear stage before UMAP
+  n_neighbors: 30
+  min_dist: 0.1
+  metric: cosine
+
+# HDBSCAN only: it finds the cluster count itself and supplies the
+# membership probability the uncertainty score needs.
+clustering:
+  methods:
+    - name: hdbscan
+      min_cluster_size: 10
+      min_samples: 10
+      cluster_selection_method: eom
+
+hdbscan:
+  sweep_range: [10]          # the published value, not a sweep
+  cluster_selection_method: eom
+
+evaluation:
+  top_k_confusion: 20
+
+visualization:
+  method: umap
+  umap:
+    n_neighbors: 30
+    min_dist: 0.1
+    metric: cosine
+    random_state: 42
+  subsample: 5000
+  dpi: 300
+  export_pdf: true
+
+annotation:
+  species_source: dataset       # candidates = the dataset's class names
+  taxonomy_source: names        # genus parsed from the name; no network
+  # taxonomy_file: path/to/classes_with_family.csv   # adds family and order
+
+  uncertainty:
+    # Absolute, not percentile.
+    review_threshold: 0.55      # combined >= 0.55 -> review
+    human_threshold: 0.70       # combined >= 0.70 -> human_required
+    weights:
+      text_margin: 0.35
+      membership_probability: 0.25
+      cluster_agreement: 0.25
+      taxonomic_consistency: 0.15
+
+  include_sanity_check: true
+  n_sanity: 25
+
+output_dir: results/paper/cub200/backbone_bioclip
+seed: 42

@@ -1,0 +1,90 @@
+# -------------------------------------------------------
+# Config: synthetic demo
+#
+# A complete, working config for the dataset produced by
+#   python examples/make_synthetic_dataset.py --out demo_data
+#
+# Its purpose is to let anyone verify the whole pipeline end to end on a
+# machine with no real data:
+#
+#   python examples/make_synthetic_dataset.py --out demo_data
+#   biocluster-extract  --config configs/demo_synthetic.yaml
+#   biocluster-cluster  --config configs/demo_synthetic.yaml
+#   biocluster-evaluate --config configs/demo_synthetic.yaml
+#
+# It uses BioCLIP v1 (the smallest checkpoint, ~1.2 GB) to keep the first run
+# short. The clusters it finds are meaningless biologically, since the images
+# are coloured textures, so judge only that each stage completes and writes
+# output.
+# -------------------------------------------------------
+
+dataset:
+  name: demo_synthetic
+  format: imagefolder
+  root: demo_data                 # produced by examples/make_synthetic_dataset.py
+  image_extensions: [jpg, jpeg, png]
+  num_classes: 6                  # matches --classes in the generator
+
+model:
+  name: bioclip
+  pretrained: hf-hub:imageomics/bioclip
+  normalize_embeddings: true
+  batch_size: 16
+  num_workers: 0                  # 0 avoids worker start-up cost on a tiny set
+
+  prompt_templates:
+    - "{name}"
+    - "a photo of {name}"
+
+# Only reduction and clustering see the reduced space; text matching always
+# happens in the original embedding space.
+reduction:
+  method: pca                     # tiny dataset: UMAP needs more points than this
+  n_components: 5
+
+clustering:
+  methods:
+    - name: kmeans
+      n_clusters: 6
+      n_init: 10
+      random_state: 42
+      max_iter: 300
+
+    - name: agglomerative
+      n_clusters: 6
+      linkage: ward
+
+    - name: hdbscan
+      min_cluster_size: 4
+      min_samples: 2
+      cluster_selection_method: eom
+
+evaluation:
+  top_k_confusion: 5
+
+visualization:
+  method: umap
+  umap:
+    n_neighbors: 10              # must stay below the number of images (72)
+    min_dist: 0.1
+    metric: cosine
+    random_state: 42
+  subsample: 5000
+  dpi: 150
+  export_pdf: false
+
+annotation:
+  species_source: dataset         # candidate names = the class folder names
+  taxonomy_source: names          # parse genus from the name; no GBIF lookup
+
+  uncertainty:
+    review_threshold: 0.55        # combined >= 0.55 -> "review"
+    human_threshold: 0.70         # combined >= 0.70 -> "human_required"
+    weights:
+      text_margin: 0.35
+      membership_probability: 0.25
+      cluster_agreement: 0.25
+      taxonomic_consistency: 0.15
+
+output_dir: results/demo_synthetic
+seed: 42

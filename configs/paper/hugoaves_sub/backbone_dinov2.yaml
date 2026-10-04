@@ -1,0 +1,75 @@
+# ===========================================================================
+# HUGO-Bench Aves (sub)  x  DINOv2
+#
+# Reproduces one row of Table 3 (tab:backbones): the backbone comparison under
+# HDBSCAN, each backbone at its own selected reduction.
+#
+#   Reduction      : UMAP-5
+#   HDBSCAN        : min_cluster_size=70, min_samples=7, selection=leaf
+#   Reported ARI   : 0.843
+#   Reported NMI   : 0.906
+#   Reported Hung. : 0.898
+#   Clusters       : 32 (reference partition has 30)
+#   Noise          : 4.7%
+#
+# Mean over ten subsamples in the paper; this config runs ONE of them.
+# Camera-trap imagery. The paper reports the mean over ten subsamples of
+# exactly 200 images from each of 30 classes, matching the original HUGO-
+# Bench protocol.
+#
+# Settings come from the logged run in run_history.csv.
+# ===========================================================================
+
+dataset:
+  name: hugoaves
+  format: imagefolder
+  root: /path/to/dataset        # <-- one balanced subsample folder, e.g. aves_200_run0
+  image_extensions: [jpg, jpeg, png, webp]
+  num_classes: 30
+
+model:
+  name: dinov2
+  pretrained: vit_large_patch14_dinov2.lvd142m
+  normalize_embeddings: true
+  batch_size: 32
+  num_workers: 4
+  global_pool: token          # CLS token, per the paper footnote
+
+  # No text encoder: this backbone can cluster but cannot name clusters.
+
+reduction:
+  method: umap
+  n_components: 5
+  n_neighbors: 60
+  min_dist: 0.2
+  metric: cosine
+
+# HDBSCAN only: it finds the cluster count itself and supplies the
+# membership probability the uncertainty score needs.
+clustering:
+  methods:
+    - name: hdbscan
+      min_cluster_size: 70
+      min_samples: 7
+      cluster_selection_method: leaf
+
+hdbscan:
+  sweep_range: [70]          # the published value, not a sweep
+  cluster_selection_method: leaf
+
+evaluation:
+  top_k_confusion: 20
+
+visualization:
+  method: umap
+  umap:
+    n_neighbors: 30
+    min_dist: 0.1
+    metric: cosine
+    random_state: 42
+  subsample: 5000
+  dpi: 300
+  export_pdf: true
+
+output_dir: results/paper/hugoaves_sub/backbone_dinov2
+seed: 42
