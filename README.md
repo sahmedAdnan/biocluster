@@ -181,7 +181,7 @@ MIT. See [LICENSE](LICENSE).
 
 ## Acknowledgements
 
-Built on [BioCLIP](https://imageomics.github.io/bioclip/) and BioCLIP 2
+Built on [BioCLIP](https://imageomics.github.io/bioclip/) and [BioCLIP-2](https://imageomics.github.io/bioclip-2/)
 (Imageomics Institute), [OpenCLIP](https://github.com/mlfoundations/open_clip),
 DINOv2/v3 (Meta AI), [UMAP](https://umap-learn.readthedocs.io/) and
 [HDBSCAN](https://hdbscan.readthedocs.io/). Taxonomic lookups use
