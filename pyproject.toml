@@ -10,7 +10,12 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "Shakil Ahmed" }]
+authors = [
+  { name = "Shakil Ahmed" },
+  { name = "Kim Bjerge", email = "kbe@ece.au.dk" },
+  { name = "Toke T. Høye" },
+  { name = "Christian Nørgaard Storm Pedersen" },
+]
 keywords = ["biodiversity", "clustering", "BioCLIP", "camera-trap",
             "zero-shot", "species-identification", "active-learning"]
 classifiers = [

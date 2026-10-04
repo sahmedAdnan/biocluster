@@ -5,10 +5,23 @@ version: 0.1.0
 authors:
   - family-names: Ahmed
     given-names: Shakil
+    affiliation: "Aarhus University, Department of Computer Science, Aarhus N, 8200, Denmark"
+  - family-names: Bjerge
+    given-names: Kim
+    affiliation: "Aarhus University, Department of Electrical and Computer Engineering, Aarhus N, 8200, Denmark"
+    email: kbe@ece.au.dk
+  - family-names: Høye
+    given-names: Toke T.
+    affiliation: "Aarhus University, Department of Ecoscience, Aarhus C, 8000, Denmark"
+  - family-names: Pedersen
+    given-names: Christian Nørgaard Storm
+    affiliation: "Aarhus University, Bioinformatics and Computational Biology, Aarhus C, 8000, Denmark"
 license: MIT
 repository-code: "https://github.com/sahmedAdnan/biocluster"
 keywords:
+  - species clustering
+  - species annotation
+  - foundation model
+  - uncertainty quantification
+  - human-in-the-loop
   - biodiversity
-  - clustering
-  - BioCLIP
-  - species identification
