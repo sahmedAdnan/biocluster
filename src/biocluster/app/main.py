@@ -354,6 +354,12 @@ class PipelineWorker(QThread):
                 if self.shared_extractor is not None:
                     self.progress.emit(20, f"Reusing loaded {self.extractor_name} model...")
                     extractor = self.shared_extractor
+                    # The extractor reads its run settings from itself, and they
+                    # were fixed when it was built. Without this a reused model
+                    # silently kept the first run's batch size, while the cache
+                    # index and run history recorded the new one.
+                    extractor.batch_size = self.batch_size
+                    extractor.num_workers = self.num_workers
                 else:
                     self.progress.emit(20, f"Loading {self.extractor_name} model...")
                     config = build_model_config(
