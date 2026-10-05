@@ -181,8 +181,19 @@ def build_payload(annotations_df, reference_map, candidate_mode):
                      for x in rows]
         tier = min(tier_seen, key=lambda t: TIER_PRIORITY.get(t, 3))
 
+        # A taxonomic_consistency of 0.0 means either "one family, genuinely
+        # pure" or "no family resolvable". Only the first is evidence. Where no
+        # family was resolved the meter is built from the semantic signal alone,
+        # otherwise 40% of the bar comes from a signal that is identically zero
+        # and the meter can never fall below 0.4 however bad the name is.
+        tax_known = any(str(x.get("taxonomy_informative", "")).strip().lower()
+                        in ("true", "1", "1.0") for x in rows)
+
         cl_conf = round(max(0.0, min(1.0, 1.0 - (spa * 0.5 + agr * 0.5))), 3)
-        an_conf = round(max(0.0, min(1.0, 1.0 - (sem * 0.6 + tax * 0.4))), 3)
+        if tax_known:
+            an_conf = round(max(0.0, min(1.0, 1.0 - (sem * 0.6 + tax * 0.4))), 3)
+        else:
+            an_conf = round(max(0.0, min(1.0, 1.0 - sem)), 3)
 
         # Per-image annotation confidence = 1 - combined_uncertainty (the same
         # per-image score that sets each image's tier). The cluster average of

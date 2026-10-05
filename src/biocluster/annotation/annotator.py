@@ -242,26 +242,37 @@ def compute_cluster_agreement(cluster_ids: np.ndarray,
 def compute_taxonomic_consistency(cluster_ids: np.ndarray,
                                   image_top1: List[str],
                                   taxonomy_table: dict,
-                                  ) -> np.ndarray:
+                                  return_informative: bool = False,
+                                  ):
     """
     Taxonomic consistency: does the cluster mix species from different families?
 
     If all image-level votes within a cluster share the same family -> 0.0 (pure).
     If votes span multiple families -> scaled by how many families are mixed.
 
+    A zero is ambiguous on its own: it means either "one family, genuinely pure"
+    or "no family could be resolved, nothing is known". The signal value is the
+    same in both cases, so `return_informative` reports which it was. Callers
+    that display a confidence meter need this, because a meter should not
+    reserve weight for a signal that had no evidence to offer.
+
     Args:
         cluster_ids:    (N,) cluster assignments.
         image_top1:     (N,) per-image top-1 species vote.
         taxonomy_table: Dict mapping species_name -> {"family": str, ...}.
+        return_informative: also return an (N,) bool array that is True where
+                        at least one family was resolved for that image's cluster.
 
     Returns:
-        (N,) array of taxonomic inconsistency in [0, 1].
+        (N,) array of taxonomic inconsistency in [0, 1], or a tuple of
+        (uncertainty, informative) when `return_informative` is set.
     """
     n = len(cluster_ids)
     uncertainty = np.zeros(n)
+    informative = np.zeros(n, dtype=bool)
 
     if not taxonomy_table:
-        return uncertainty
+        return (uncertainty, informative) if return_informative else uncertainty
 
     # Group by cluster
     cluster_to_indices = defaultdict(list)
@@ -287,19 +298,23 @@ def compute_taxonomic_consistency(cluster_ids: np.ndarray,
             if family:
                 families.add(family)
 
-        # If we couldn't look up any families, no signal
+        # len == 0 means no family was resolvable, which is not the same as
+        # len == 1 (genuinely pure). Both score 0.0 so the combined
+        # uncertainty is unchanged, but only the latter is evidence.
+        for i in indices:
+            informative[i] = len(families) >= 1
+
         if len(families) <= 1:
             # Pure or unknown: no inconsistency
             for i in indices:
                 uncertainty[i] = 0.0
         else:
             # Mixed families: uncertainty proportional to diversity
-            # 2 families -> 0.5, 3+ families -> higher
             inconsistency = min(1.0, (len(families) - 1) / 3.0)
             for i in indices:
                 uncertainty[i] = inconsistency
 
-    return uncertainty
+    return (uncertainty, informative) if return_informative else uncertainty
 
 
 def compute_combined_uncertainty(
@@ -438,8 +453,8 @@ def run_annotation(features: np.ndarray,
     agreement = compute_cluster_agreement(cluster_ids, image_top1)
     print(f"    Agreement (cluster vote): mean={agreement.mean():.3f}")
 
-    taxonomic = compute_taxonomic_consistency(
-        cluster_ids, image_top1, taxonomy_table
+    taxonomic, taxonomy_informative = compute_taxonomic_consistency(
+        cluster_ids, image_top1, taxonomy_table, return_informative=True
     )
     print(f"    Taxonomic (family check): mean={taxonomic.mean():.3f}")
 
@@ -478,6 +493,7 @@ def run_annotation(features: np.ndarray,
         "spatial_uncertainty":    spatial,
         "cluster_agreement":      agreement,
         "taxonomic_consistency":  taxonomic,
+        "taxonomy_informative":   taxonomy_informative,
         "combined_uncertainty":   combined,
         "confidence_tier":        tiers,
         "annotation_source":      "AI_ZeroShot",
