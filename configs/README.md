@@ -30,7 +30,7 @@ Reduction, HDBSCAN setting and the reported figures behind each file:
 | EU-Moth | BioCLIP 2 (ViT-L/14) | UMAP-20 | 5 / 5 | 0.978 | 200 | 0.09 |
 | EU-Moth | BioCLIP | UMAP-10 | 3 / 3 | 0.895 | 194 | 2.9 |
 | EU-Moth | DINOv3 | UMAP-20 | 4 / 2 | 0.525 | 181 | 13.92 |
-| EU-Moth | DINOv2 | UMAP-20 | 3 / 2 | 0.458 ⚠ | 219 | 20.5 |
+| EU-Moth | DINOv2 | UMAP-20 | 3 / 2 | 0.458 | 219 | 20.5 |
 | EU-Moth | CLIP | UMAP-15 | 3 / 3 | 0.425 | 162 | 33.15 |
 | DK-Moth (sub) | BioCLIP 2 (ViT-H/14) | UMAP-20 | 4 / 3 | 0.816 | 241 | 10.8 |
 | DK-Moth (sub) | BioCLIP 2 (ViT-L/14) | UMAP-20 | 4 / 2 | 0.727 | 248 | 14.5 |
