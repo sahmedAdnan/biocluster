@@ -81,3 +81,20 @@ documented rather than silently reconciled:
   `scripts/pick_dbscan_eps.py`.
 - **The two subsampled datasets are reported as ten-run means.** Each config
   runs a single subsample; point `root` at each in turn to reproduce the mean.
+
+## Extracted embeddings
+
+The embeddings and `run_history.csv` are here:
+[Google Drive](https://drive.google.com/drive/folders/1oHjNn059xV0iR30gyL6r-PbUkzpxcbMO?usp=sharing).
+
+Copy one into the `output_dir` named in the config and rename it to
+`features.npz`. You can then start at the clustering stage, which needs no
+images and no model weights:
+
+```bash
+CFG=configs/paper/eumoth/backbone_bioclip2.5.yaml
+cp eumoth__bioclip2.5.npz results/paper/eumoth/backbone_bioclip2.5/features.npz
+
+biocluster-cluster  --config $CFG
+biocluster-evaluate --config $CFG
+```
