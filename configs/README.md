@@ -20,6 +20,10 @@ biocluster-annotate --config configs/paper/<dataset>/<file>.yaml
 
 Datasets: `eumoth`, `dkmoth_sub`, `cub200`, `hugoaves_sub`.
 
+DK-Moth is published on Zenodo [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23319153.svg)](https://doi.org/10.5281/zenodo.23319153). Unzip it and set
+`root` to one `DK-moth_runNN_seedSS` folder; repeating over all ten gives the
+ten-run mean.
+
 ## Table 3: backbone comparison (HDBSCAN)
 
 Reduction, HDBSCAN setting and the reported figures behind each file:

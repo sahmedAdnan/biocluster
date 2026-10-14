@@ -1,5 +1,9 @@
 # BioCluster
 
+[![DK-Moth dataset DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23319153.svg)](https://doi.org/10.5281/zenodo.23319153)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+
 Unsupervised species discovery and confidence-tiered annotation for biological
 image collections.
 
@@ -36,6 +40,39 @@ works but is slow. Pretrained weights download automatically on first use
 python examples/make_synthetic_dataset.py --out demo_data
 biocluster-gui                       # open demo_data/
 ```
+
+## DK-Moth dataset
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23319153.svg)](https://doi.org/10.5281/zenodo.23319153)
+
+**DK-Moth** is the camera-trap image dataset of Danish moths used in the paper,
+published on Zenodo under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+It holds ten class-balanced subsamples of the same 248 species, the ten runs
+the paper's means are computed over.
+
+```text
+DK-Moth/
+├── DK-Moth_subsample248_classes_with_family.csv    species, genus, family, order
+├── DK-moth_run01_seed42/                           2,310 images, one folder per species
+│   ├── Abraxas sylvata/
+│   └── ...
+├── DK-moth_run02_seed43/
+│   ...
+└── DK-moth_run10_seed51/
+```
+
+| on Zenodo | contents |
+|---|---|
+| `DK-Moth_dataset.zip` (140 MB) | the folder tree above |
+| `DK-Moth_subsample248_classes_with_family.csv` | the species list on its own, with taxonomy from GBIF |
+| `DK-Moth_dataset_description_final.pdf` | how the dataset was collected, compiled and created |
+
+**Using it.** Unzip, then point either app, or `dataset.root` in a
+[`configs/paper/dkmoth_sub/`](configs/paper/dkmoth_sub) file, at one
+`DK-moth_runNN_seedSS` folder with ground-truth labels on. To annotate with full
+taxonomy, choose **Taxonomy CSV** in the app and pick the species list, or
+uncomment `taxonomy_file:` in the config. Folder names carry only the genus, so
+without the list the taxonomic-consistency signal has no family to check.
 
 ## Desktop application
 
@@ -173,7 +210,20 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ## Citation
 
-See [CITATION.cff](CITATION.cff).
+For the software, use GitHub's **Cite this repository** button, which reads
+[CITATION.cff](CITATION.cff). For the dataset:
+
+```bibtex
+@dataset{ahmed_2026_dkmoth,
+  author    = {Ahmed, Shakil and Bjerge, Kim and Helsing-Nielsen, Flemming and
+               Høye, Toke T. and Pedersen, Christian Nørgaard Storm},
+  title     = {{DK-Moth}: a species-labelled camera-trap image dataset of Danish moths},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.23319153},
+  url       = {https://doi.org/10.5281/zenodo.23319153}
+}
+```
 
 ## License
 

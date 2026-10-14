@@ -23,6 +23,8 @@
 dataset:
   name: mothdk
   format: imagefolder
+  # DK-Moth: https://doi.org/10.5281/zenodo.23319153
+  # The zip holds ten subsamples, DK-moth_run01_seed42 ... DK-moth_run10_seed51.
   root: /path/to/dataset        # <-- one balanced subsample folder, e.g. DK-moth_run01_seed42
   image_extensions: [jpg, jpeg, png, webp]
   num_classes: 248

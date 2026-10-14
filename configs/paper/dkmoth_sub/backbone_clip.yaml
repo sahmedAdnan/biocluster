@@ -23,6 +23,8 @@
 dataset:
   name: mothdk
   format: imagefolder
+  # DK-Moth: https://doi.org/10.5281/zenodo.23319153
+  # The zip holds ten subsamples, DK-moth_run01_seed42 ... DK-moth_run10_seed51.
   root: /path/to/dataset        # <-- one balanced subsample folder, e.g. DK-moth_run01_seed42
   image_extensions: [jpg, jpeg, png, webp]
   num_classes: 248
@@ -76,7 +78,7 @@ visualization:
 annotation:
   species_source: dataset       # candidates = the dataset's class names
   taxonomy_source: names        # genus parsed from the name; no network
-  # taxonomy_file: path/to/classes_with_family.csv   # adds family and order
+  # taxonomy_file: path/to/DK-Moth/DK-Moth_subsample248_classes_with_family.csv   # adds family and order
 
   uncertainty:
     # Absolute, not percentile.

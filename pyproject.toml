@@ -5,16 +5,16 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "biocluster"
 version = "0.1.0"
-description = "Unsupervised species discovery and confidence-tiered annotation for biological image collections"
+description = "BioCLuster: A Framework for Clustering and Zero-Shot Labeling of Ecological Images Using Foundation Models"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
-  { name = "Shakil Ahmed" },
+  { name = "Shakil Ahmed", email = "ahshakil.au@gmail.com" },
   { name = "Kim Bjerge", email = "kbe@ece.au.dk" },
-  { name = "Toke T. Høye" },
-  { name = "Christian Nørgaard Storm Pedersen" },
+  { name = "Toke T. Høye", email = "tth@ecos.au.dk" },
+  { name = "Christian Nørgaard Storm Pedersen", email = "cstorm@birc.au.dk" },
 ]
 keywords = ["biodiversity", "clustering", "BioCLIP", "camera-trap",
             "zero-shot", "species-identification", "active-learning"]

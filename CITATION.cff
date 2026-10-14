@@ -1,21 +1,27 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "BioCluster: unsupervised species discovery and confidence-tiered annotation for biological image collections"
+title: "BioCluster: A Framework for Clustering and Zero-Shot Labeling of Ecological Images Using Foundation Models"
 version: 0.1.0
 authors:
   - family-names: Ahmed
     given-names: Shakil
     affiliation: "Aarhus University, Department of Computer Science, Aarhus N, 8200, Denmark"
+    email: ahshakil.au@gmail.com
+    orcid: "https://orcid.org/0000-0001-6366-4881"
   - family-names: Bjerge
     given-names: Kim
     affiliation: "Aarhus University, Department of Electrical and Computer Engineering, Aarhus N, 8200, Denmark"
     email: kbe@ece.au.dk
+    orcid: "https://orcid.org/0000-0001-6742-9504"
   - family-names: Høye
     given-names: Toke T.
     affiliation: "Aarhus University, Department of Ecoscience, Aarhus C, 8000, Denmark"
+    email: tth@ecos.au.dk
+    orcid: "https://orcid.org/0000-0001-5387-3284"
   - family-names: Pedersen
     given-names: Christian Nørgaard Storm
     affiliation: "Aarhus University, Bioinformatics and Computational Biology, Aarhus C, 8000, Denmark"
+    email: cstorm@birc.au.dk
 license: MIT
 repository-code: "https://github.com/sahmedAdnan/biocluster"
 keywords:
@@ -25,3 +31,26 @@ keywords:
   - uncertainty quantification
   - human-in-the-loop
   - biodiversity
+references:
+  - type: data
+    title: "DK-Moth: a species-labelled camera-trap image dataset of Danish moths"
+    authors:
+      - family-names: Ahmed
+        given-names: Shakil
+        orcid: "https://orcid.org/0000-0001-6366-4881"
+      - family-names: Bjerge
+        given-names: Kim
+        orcid: "https://orcid.org/0000-0001-6742-9504"
+      - family-names: Helsing-Nielsen
+        given-names: Flemming
+      - family-names: Høye
+        given-names: Toke T.
+        orcid: "https://orcid.org/0000-0001-5387-3284"
+      - family-names: Pedersen
+        given-names: Christian Nørgaard Storm
+    doi: 10.5281/zenodo.23319153
+    url: "https://doi.org/10.5281/zenodo.23319153"
+    publisher:
+      name: Zenodo
+    date-released: 2026-10-12
+    license: CC-BY-4.0
