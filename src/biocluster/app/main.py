@@ -609,6 +609,123 @@ class _ClickableLabel(QLabel):
             self.clicked.emit(self._path)
 
 
+class _CreditsDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        import html
+        from biocluster import __version__
+        from biocluster.app import credits as C
+
+        self.setWindowTitle("About Bio Cluster")
+        self.resize(600, 860)
+        esc = html.escape
+        muted = f"color:{T.INK_MUTED};"
+
+        def link(url, text):
+            return (f'<a href="{esc(url)}" style="color:{T.ACCENT}; '
+                    f'text-decoration:none;">{esc(text)}</a>')
+
+        def rich(text, name=None):
+            lbl = QLabel(text)
+            lbl.setTextFormat(Qt.RichText)
+            lbl.setWordWrap(True)
+            lbl.setOpenExternalLinks(True)
+            lbl.setTextInteractionFlags(Qt.TextBrowserInteraction)
+            if name:
+                lbl.setObjectName(name)
+            return lbl
+
+        def card(eyebrow, *widgets):
+            frame = QFrame()
+            frame.setObjectName("Card")
+            lay = QVBoxLayout(frame)
+            lay.setContentsMargins(T.SPACE_LG, T.SPACE_MD, T.SPACE_LG, T.SPACE_LG)
+            lay.setSpacing(T.SPACE_MD)
+            cap = QLabel(eyebrow.upper())
+            cap.setObjectName("Eyebrow")
+            lay.addWidget(cap)
+            for w in widgets:
+                lay.addWidget(w)
+            return frame
+
+        body = QWidget()
+        body.setObjectName("CreditsBody")
+        body.setStyleSheet(f"QWidget#CreditsBody {{ background: {T.WINDOW}; }}")
+        col = QVBoxLayout(body)
+        col.setContentsMargins(T.SPACE_XL, T.SPACE_XL, T.SPACE_XL, T.SPACE_LG)
+        col.setSpacing(T.SPACE_MD)
+
+        # Header: logo, name, version and what it is.
+        head = QHBoxLayout()
+        head.setSpacing(T.SPACE_LG)
+        pix = QPixmap(os.path.join(_LOGO_DIR, "app_logo.png"))
+        if not pix.isNull():
+            logo = QLabel()
+            logo.setPixmap(pix.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            head.addWidget(logo, 0, Qt.AlignTop)
+        name_col = QVBoxLayout()
+        name_col.setSpacing(2)
+        title = QLabel("Bio Cluster")
+        title.setObjectName("PageTitle")
+        version = QLabel(f"Version {__version__}")
+        version.setObjectName("Caption")
+        tagline = QLabel(C.TAGLINE)
+        tagline.setObjectName("Muted")
+        tagline.setWordWrap(True)
+        for w in (title, version, tagline):
+            name_col.addWidget(w)
+        head.addLayout(name_col, 1)
+        col.addLayout(head)
+        col.addSpacing(T.SPACE_SM)
+
+        devs = QLabel(" and ".join(C.DEVELOPERS))
+        devs.setObjectName("CardTitle")
+        col.addWidget(card("Developed by", devs))
+
+        authors = []
+        for a in C.AUTHORS:
+            orcid = ("<br>" + link("https://orcid.org/" + a["orcid"], "orcid.org/" + a["orcid"])
+                     if a["orcid"] else "")
+            authors.append(rich(f'<b>{esc(a["name"])}</b><br>'
+                                f'<span style="{muted}">{esc(a["affiliation"])}</span>{orcid}'))
+        col.addWidget(card("Authors", *authors))
+
+        built = []
+        for name, by, url in C.BUILT_ON:
+            item = link(url, name) if url else esc(name)
+            if by:
+                item += f' <span style="{muted}">· {esc(by)}</span>'
+            built.append(item)
+        col.addWidget(card("Built on", rich("<br>".join(built))))
+        col.addStretch()
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setWidget(body)
+
+        footer = QWidget()
+        footer.setObjectName("CreditsFooter")
+        footer.setStyleSheet(f"QWidget#CreditsFooter {{ background: {T.SURFACE}; "
+                             f"border-top: 1px solid {T.BORDER}; }}")
+        foot = QHBoxLayout(footer)
+        foot.setContentsMargins(T.SPACE_XL, T.SPACE_MD, T.SPACE_XL, T.SPACE_MD)
+        foot.addWidget(rich(f'<span style="{muted}">{esc(C.LICENSE)}</span>'
+                            f' &nbsp;·&nbsp; {link(C.REPOSITORY, "Source on GitHub")}', "Caption"), 1)
+        close = QPushButton("Close")
+        close.setMinimumWidth(96)
+        close.setDefault(True)
+        close.clicked.connect(self.accept)
+        foot.addWidget(close)
+
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+        outer.addWidget(scroll, 1)
+        outer.addWidget(footer)
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -666,7 +783,15 @@ class MainWindow(QMainWindow):
         font.setPointSize(22)
         font.setBold(True)
         title_lbl.setFont(font)
-        sidebar_layout.addWidget(title_lbl)
+        about_lbl = QLabel(f'<a href="#credits" style="color:{T.ACCENT}; '
+                           f'text-decoration:none;">About &amp; credits</a>')
+        about_lbl.setObjectName("Caption")
+        about_lbl.linkActivated.connect(self.show_credits)
+        title_box = QVBoxLayout()
+        title_box.setSpacing(2)
+        title_box.addWidget(title_lbl)
+        title_box.addWidget(about_lbl)
+        sidebar_layout.addLayout(title_box)
 
         data_group = QGroupBox("1. Data Input")
         data_layout = QVBoxLayout()
@@ -2565,6 +2690,9 @@ class MainWindow(QMainWindow):
             self._plot_tmp = tempfile.mkdtemp(prefix="biocluster_plots_")
         return self._plot_tmp
 
+    def show_credits(self, *_):
+        _CreditsDialog(self).exec()
+
     def closeEvent(self, event):
         """Drop the rendered-figure scratch directory on exit -- it holds a
         ~4.8 MB copy of plotly.js and would otherwise accumulate per session."""
@@ -3377,7 +3505,7 @@ def main():
             pix = QPixmap(_emblem).scaled(480, 480, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             splash = _SplashScreen(pix)
             splash.show()
-            splash.showMessage("Initializing...   Powered by BioCLIP")
+            splash.showMessage("Initializing...")
             app.processEvents()
 
         qdarktheme.setup_theme("light")

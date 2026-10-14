@@ -20,7 +20,7 @@ authors:
     orcid: "https://orcid.org/0000-0001-5387-3284"
   - family-names: Pedersen
     given-names: Christian Nørgaard Storm
-    affiliation: "Aarhus University, Bioinformatics and Computational Biology, Aarhus C, 8000, Denmark"
+    affiliation: "Aarhus University, Department of Molecular Biology and Genetics, Aarhus C, 8000, Denmark"
     email: cstorm@birc.au.dk
 license: MIT
 repository-code: "https://github.com/sahmedAdnan/biocluster"
