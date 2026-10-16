@@ -1,6 +1,6 @@
 # Configurations
 
-Every file under `paper/` reproduces a specific row of the manuscript, with the
+Every file under `paper/` reproduces a specific row of the [manuscript](https://doi.org/10.64898/2026.10.15.759340), with the
 parameters taken from the logged run rather than re-derived. Set
 `dataset.root` and run:
 

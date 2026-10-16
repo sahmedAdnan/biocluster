@@ -1,5 +1,6 @@
 # BioCluster
 
+[![bioRxiv preprint](https://img.shields.io/badge/bioRxiv-10.64898%2F2026.10.15.759340-bd2736.svg)](https://doi.org/10.64898/2026.10.15.759340)
 [![DK-Moth dataset DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23319153.svg)](https://doi.org/10.5281/zenodo.23319153)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
@@ -15,6 +16,10 @@ unsure.
 
 It is a triage and pre-annotation tool, not a trained classifier. No model is
 trained or fine-tuned on your data at any point.
+
+The method and its evaluation are described in the preprint
+[*A Framework for Clustering and Zero-Shot Labeling of Ecological Images Using Foundation Models*](https://doi.org/10.64898/2026.10.15.759340)
+(Ahmed, Bjerge, Høye and Pedersen, bioRxiv, 2026).
 
 ---
 
@@ -45,7 +50,7 @@ biocluster-gui                       # open demo_data/
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23319153.svg)](https://doi.org/10.5281/zenodo.23319153)
 
-**DK-Moth** is the camera-trap image dataset of Danish moths used in the paper,
+**DK-Moth** is the camera-trap image dataset of Danish moths used in the [paper](https://doi.org/10.64898/2026.10.15.759340),
 published on Zenodo under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 It holds ten class-balanced subsamples of the same 248 species, the ten runs
 the paper's means are computed over.
@@ -210,8 +215,22 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ## Citation
 
-For the software, use GitHub's **Cite this repository** button, which reads
-[CITATION.cff](CITATION.cff). For the dataset:
+If you use BioCluster, please cite the paper:
+
+```bibtex
+@article{ahmed_2026_biocluster,
+  author  = {Ahmed, Shakil and Bjerge, Kim and Høye, Toke T. and
+             Pedersen, Christian Nørgaard Storm},
+  title   = {A Framework for Clustering and Zero-Shot Labeling of Ecological
+             Images Using Foundation Models},
+  journal = {bioRxiv},
+  year    = {2026},
+  doi     = {10.64898/2026.10.15.759340},
+  url     = {https://doi.org/10.64898/2026.10.15.759340}
+}
+```
+
+If you use the DK-Moth dataset, please also cite:
 
 ```bibtex
 @dataset{ahmed_2026_dkmoth,
@@ -224,6 +243,9 @@ For the software, use GitHub's **Cite this repository** button, which reads
   url       = {https://doi.org/10.5281/zenodo.23319153}
 }
 ```
+
+GitHub's **Cite this repository** button gives the software itself, from
+[CITATION.cff](CITATION.cff).
 
 ## License
 
