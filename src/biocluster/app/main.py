@@ -858,6 +858,9 @@ class MainWindow(QMainWindow):
         self.combo_reduction = _ComboBox()
         self.combo_reduction.setMinimumHeight(30)
         self.combo_reduction.addItems(["pca", "umap", "pca+umap", "none"])
+        # Start on the DK-Moth paper setting
+        # (configs/paper/dkmoth_sub/backbone_bioclip2.5.yaml).
+        self.combo_reduction.setCurrentText("umap")
         self.combo_reduction.currentTextChanged.connect(self._update_reduction_params)
         self.combo_reduction.currentTextChanged.connect(self._update_seed_scope)
         
@@ -878,6 +881,7 @@ class MainWindow(QMainWindow):
         self.combo_clustering = _ComboBox()
         self.combo_clustering.setMinimumHeight(30)
         self.combo_clustering.addItems(["kmeans", "dbscan", "hdbscan", "spectral", "agglomerative", "gmm"])
+        self.combo_clustering.setCurrentText("hdbscan")
         self.combo_clustering.currentTextChanged.connect(self._update_cluster_params)
         self.combo_clustering.currentTextChanged.connect(self._update_seed_scope)
         
@@ -1458,7 +1462,7 @@ class MainWindow(QMainWindow):
 
         if "umap" in method:
             self._add_param(L, "n_components",
-                "n_components:", self._create_spinbox(50 if method=="pca+umap" else 100, 2, 768),
+                "n_components:", self._create_spinbox(50 if method=="pca+umap" else 20, 2, 768),
                 "Number of dimensions UMAP projects to. Use 2 for the clearest "
                 "visualization; higher can help clustering accuracy but adds "
                 "noise and cannot be plotted directly.",
@@ -1472,7 +1476,7 @@ class MainWindow(QMainWindow):
                 self.reduction_widgets)
 
             self._add_param(L, "min_dist",
-                "min_dist:", self._create_double_spinbox(0.1, 0.0, 1.0, 0.05),
+                "min_dist:", self._create_double_spinbox(0.15 if method == "umap" else 0.1, 0.0, 1.0, 0.05),
                 "Minimum spacing between points in the projection. Higher "
                 "spreads points out evenly; lower packs them into tight, dense "
                 "clumps, which usually makes clusters easier to separate.",
@@ -1552,24 +1556,24 @@ class MainWindow(QMainWindow):
 
         elif method == "hdbscan":
             self._add_param(L, "min_cluster_size",
-                "min_cluster_size:", self._create_spinbox(5, 2, 100),
+                "min_cluster_size:", self._create_spinbox(4, 2, 100),
                 "Smallest allowed cluster size. Higher merges small groups "
                 "into fewer, larger clusters; lower keeps small clusters but "
                 "labels more points as noise.",
                 self.clustering_widgets)
 
             self._add_param(L, "min_samples",
-                "min_samples:", self._create_spinbox(5, 1, 100),
+                "min_samples:", self._create_spinbox(3, 1, 100),
                 "How conservative the clustering is. Higher marks more points "
                 "as noise and produces tighter cores; lower keeps more points "
                 "and looser clusters.",
                 self.clustering_widgets)
 
             self._add_param(L, "cluster_selection_method",
-                "cluster_selection_method:", self._create_combobox(["eom", "leaf"]),
+                "cluster_selection_method:", self._create_combobox(["eom", "leaf"], default_idx=1),
                 "How clusters are pulled from the hierarchy. 'eom' (excess of "
-                "mass) gives fewer, larger clusters (default); 'leaf' gives "
-                "finer, more numerous clusters.",
+                "mass) gives fewer, larger clusters; 'leaf' gives finer, more "
+                "numerous clusters (default, as in the DK-Moth setting).",
                 self.clustering_widgets)
 
         elif method == "gmm":

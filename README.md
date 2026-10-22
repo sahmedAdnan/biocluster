@@ -89,10 +89,13 @@ without the list the taxonomic-consistency signal has no family to check.
 biocluster-gui
 ```
 
-Choose a folder, an encoder, a reduction and a clustering method, then run.
-Five tabs: projection map, cluster distribution, evaluation metrics, image
-verification (the review surface, worst-first by confidence), and run history.
-Full guide in [docs/GUI.md](docs/GUI.md).
+Choose a folder and run. The app starts with the DK-Moth default settings from
+the paper (BioCLIP 2.5, UMAP to 20 dimensions, HDBSCAN), and the encoder,
+reduction and clustering method can all be changed for other data. Five tabs:
+projection map, cluster distribution, evaluation metrics, image verification
+(the review surface, worst-first by confidence), and run history.
+Step-by-step guide in [docs/GUI.md](docs/GUI.md); to reproduce the paper's
+numbers, see [docs/REPRODUCING.md](docs/REPRODUCING.md).
 
 **Input layouts**
 
@@ -145,10 +148,12 @@ reports, with the reduction and HDBSCAN settings taken from the logged run.
 [configs/README.md](configs/README.md) for the full traceability table, and for
 the two rows whose published figures could not be traced exactly.
 
-Reproduction is close but not bit-exact: EU-Moth / BioCLIP 2.5 re-run from its
-config gives ARI 0.982 against the published 0.983, with 2 noise points instead
-of 1, because embedding extraction is not bit-reproducible across batch sizes
-and devices.
+Re-extracting the embeddings gets close to the published numbers but not
+exactly: EU-Moth / BioCLIP 2.5 re-run from its config gives ARI 0.982 against
+the published 0.983, with 2 noise points instead of 1, because embedding
+extraction is not bit-reproducible across batch sizes and devices. Starting
+from our extracted embeddings gives the published numbers exactly; see
+[docs/REPRODUCING.md](docs/REPRODUCING.md).
 
 Four scripts cover the steps around a run that the configs cannot express:
 

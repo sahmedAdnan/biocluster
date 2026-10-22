@@ -102,3 +102,6 @@ cp eumoth__bioclip2.5.npz results/paper/eumoth/backbone_bioclip2.5/features.npz
 biocluster-cluster  --config $CFG
 biocluster-evaluate --config $CFG
 ```
+
+To load `run_history.csv` into the desktop app and re-apply any logged run's
+settings, see [docs/REPRODUCING.md](../docs/REPRODUCING.md).
