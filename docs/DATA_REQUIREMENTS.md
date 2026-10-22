@@ -27,12 +27,14 @@ Labelled mode expects one subdirectory per class, and raises an error when the
 root contains no subdirectories:
 
 ```
-root/
-├── Capreolus_capreolus/
-│   ├── 0001.jpg
-│   └── 0002.jpg
-└── Vulpes_vulpes/
-    └── 0001.jpg
+DK-moth_run01_seed42/
+├── Abraxas sylvata/
+│   ├── Abraxas sylvata_SS2_197_1_0_3.JPG
+│   └── ...
+├── Acasis viretata/
+│   └── ...
+├── ...
+└── Ypsolopha parenthesella/
 ```
 
 Directory names become the ground-truth labels and enable ARI, NMI and
@@ -82,12 +84,16 @@ Three sources are supported, selected by `annotation.species_source`:
 | `gbif` | Candidates are retrieved from the GBIF occurrence API for a region |
 
 A CSV requires a `class_name` column; `genus`, `family` and `order` are
-optional:
+optional. Columns are read by name, in any order, and extra columns are
+allowed. The species list that comes with DK-Moth,
+`DK-Moth_subsample248_classes_with_family.csv`, looks like this:
 
 ```csv
-class_name,genus,family,order
-Capreolus capreolus,Capreolus,Cervidae,Artiodactyla
-Vulpes vulpes,Vulpes,Canidae,Carnivora
+index,class_name,family,order,genus,match_type,gbif_confidence,source_index,n_images_per_run
+1,Abraxas sylvata,Geometridae,Lepidoptera,Abraxas,EXACT,99,1,6
+2,Acasis viretata,Geometridae,Lepidoptera,Acasis,EXACT,100,3,10
+...
+248,Ypsolopha parenthesella,Ypsolophidae,Lepidoptera,Ypsolopha,EXACT,100,350,9
 ```
 
 The prompt is a single structured template, `"a photo of {order} {family}

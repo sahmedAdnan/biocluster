@@ -100,13 +100,15 @@ numbers, see [docs/REPRODUCING.md](docs/REPRODUCING.md).
 **Input layouts**
 
 ```
-labelled                             unlabelled
-root/                                root/
-├── Vulpes_vulpes/                    ├── anything/
-│   ├── 001.jpg                       │   └── 0001.jpg
-│   └── 002.jpg                       ├── or_nested/by/date/
-└── Capreolus_capreolus/              │   └── 0002.jpg
-    └── 001.jpg                       └── 0003.jpg
+labelled (a DK-Moth subsample)               unlabelled
+DK-moth_run01_seed42/                        root/
+├── Abraxas sylvata/                         ├── anything/
+│   ├── Abraxas sylvata_SS2_197_1_0_3.JPG    │   └── 0001.jpg
+│   └── ...                                  ├── or_nested/by/date/
+├── Acasis viretata/                         │   └── 0002.jpg
+│   └── ...                                  └── 0003.jpg
+├── ...
+└── Ypsolopha parenthesella/
 ```
 
 Labelled mode needs one subfolder per species and reports accuracy against
