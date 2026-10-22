@@ -8,8 +8,8 @@ affiliations and links live in one place.
 Keep in step with CITATION.cff, the source of truth for citations.
 """
 
-TAGLINE = ("A framework for clustering and zero-shot labeling of ecological "
-           "images using foundation models")
+TAGLINE = ("Clustering and zero-shot labeling of ecological images using "
+           "foundation models")
 
 DEVELOPERS = ["Shakil Ahmed", "Kim Bjerge"]
 
@@ -25,7 +25,7 @@ AUTHORS = [
      "orcid": "0000-0001-5387-3284"},
     {"name": "Christian Nørgaard Storm Pedersen",
      "affiliation": "Department of Molecular Biology and Genetics, Aarhus University",
-     "orcid": None},
+     "orcid": "0000-0002-8947-6771"},
 ]
 
 # The foundation models the Model dropdown offers: (name, maker, link to the

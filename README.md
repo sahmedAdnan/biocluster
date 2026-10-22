@@ -3,7 +3,7 @@
 [![bioRxiv preprint](https://img.shields.io/badge/bioRxiv-10.64898%2F2026.10.15.759340-bd2736.svg)](https://doi.org/10.64898/2026.10.15.759340)
 [![DK-Moth dataset DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23319153.svg)](https://doi.org/10.5281/zenodo.23319153)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10 | 3.11](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue.svg)](https://www.python.org/downloads/)
 
 Unsupervised species discovery and confidence-tiered annotation for biological
 image collections.
@@ -18,7 +18,7 @@ It is a triage and pre-annotation tool, not a trained classifier. No model is
 trained or fine-tuned on your data at any point.
 
 The method and its evaluation are described in the preprint
-[*A Framework for Clustering and Zero-Shot Labeling of Ecological Images Using Foundation Models*](https://doi.org/10.64898/2026.10.15.759340)
+[*BioCluster: Clustering and Zero-Shot Labeling of Ecological Images Using Foundation Models*](https://doi.org/10.64898/2026.10.15.759340)
 (Ahmed, Bjerge, Høye and Pedersen, bioRxiv, 2026).
 
 ---
@@ -29,14 +29,18 @@ The method and its evaluation are described in the preprint
 git clone https://github.com/sahmedAdnan/biocluster.git
 cd biocluster
 python -m venv .venv
-. .venv/bin/activate                 # Windows: .venv\Scripts\activate
+. .venv/bin/activate                 # Linux/macOS
+.venv\Scripts\activate               # Windows
 
 pip install -e ".[gui]"              # desktop app + pipeline
 pip install -e .                     # pipeline only, no GUI
 ```
 
-Python 3.10+. A CUDA GPU is strongly recommended for embedding extraction; CPU
-works but is slow. Pretrained weights download automatically on first use
+Python 3.10 or 3.11 (the desktop app's theme package, `pyqtdarktheme`, does not
+support 3.12 or newer yet). A CUDA GPU is strongly recommended for embedding
+extraction; CPU works but is slow. On Windows, `pip` installs the CPU build of
+PyTorch by default, so for GPU support install PyTorch first with the command from
+[pytorch.org](https://pytorch.org/get-started/locally/). Pretrained weights download automatically on first use
 (BioCLIP 2.5 is ~7 GB) and are cached by Hugging Face thereafter.
 
 ## Try it without any data
@@ -221,7 +225,7 @@ If you use BioCluster, please cite the paper:
 @article{ahmed_2026_biocluster,
   author  = {Ahmed, Shakil and Bjerge, Kim and Høye, Toke T. and
              Pedersen, Christian Nørgaard Storm},
-  title   = {A Framework for Clustering and Zero-Shot Labeling of Ecological
+  title   = {{BioCluster}: Clustering and Zero-Shot Labeling of Ecological
              Images Using Foundation Models},
   journal = {bioRxiv},
   year    = {2026},

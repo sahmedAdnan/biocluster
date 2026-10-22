@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "biocluster"
 version = "0.1.0"
-description = "BioCLuster: A Framework for Clustering and Zero-Shot Labeling of Ecological Images Using Foundation Models"
+description = "BioCluster: Clustering and Zero-Shot Labeling of Ecological Images Using Foundation Models"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -47,7 +47,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-gui = ["PySide6==6.7.2", "plotly>=5.10.0", "pyqt-darktheme>=2.1.0"]
+gui = ["PySide6==6.7.2", "plotly>=5.10.0", "pyqtdarktheme>=2.1.0"]
 dev = ["pytest>=7.4", "ruff>=0.5", "nbformat>=5.9"]
 all = ["biocluster[gui,dev]"]
 

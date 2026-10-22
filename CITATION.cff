@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "BioCluster: A Framework for Clustering and Zero-Shot Labeling of Ecological Images Using Foundation Models"
+title: "BioCluster: Clustering and Zero-Shot Labeling of Ecological Images Using Foundation Models"
 version: 0.1.0
 authors:
   - family-names: Ahmed
@@ -22,6 +22,7 @@ authors:
     given-names: Christian Nørgaard Storm
     affiliation: "Aarhus University, Department of Molecular Biology and Genetics, Aarhus C, 8000, Denmark"
     email: cstorm@birc.au.dk
+    orcid: "https://orcid.org/0000-0002-8947-6771"
 license: MIT
 repository-code: "https://github.com/sahmedAdnan/biocluster"
 keywords:
@@ -48,6 +49,7 @@ references:
         orcid: "https://orcid.org/0000-0001-5387-3284"
       - family-names: Pedersen
         given-names: Christian Nørgaard Storm
+        orcid: "https://orcid.org/0000-0002-8947-6771"
     doi: 10.5281/zenodo.23319153
     url: "https://doi.org/10.5281/zenodo.23319153"
     publisher:
