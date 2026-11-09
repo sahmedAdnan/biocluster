@@ -79,7 +79,7 @@ def load_config(config_path: str) -> dict:
 # -------------------------------------------------------
 
 def save_features(path: str, features: np.ndarray, labels: list,
-                  paths: list, class_names: list) -> None:
+                  paths: list, class_names: list, model: str = None) -> None:
     """
     Save extracted features and associated metadata to a .npz file.
 
@@ -89,16 +89,19 @@ def save_features(path: str, features: np.ndarray, labels: list,
         labels:      List of integer class IDs, length N.
         paths:       List of image file paths, length N.
         class_names: List of class name strings (ordered by class ID).
+        model:       Name of the model that produced the features (optional).
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
-    np.savez(
-        path,
+    arrays = dict(
         features=features,
         labels=np.array(labels, dtype=np.int32),
         paths=np.array(paths, dtype=object),
         class_names=np.array(class_names, dtype=object),
     )
+    if model:
+        arrays["model"] = np.array(model)
+    np.savez(path, **arrays)
 
     print(f"[save] Features saved to {path}  shape={features.shape}")
 

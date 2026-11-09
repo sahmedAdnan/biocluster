@@ -64,7 +64,8 @@ def main(config_path: str = None) -> None:
 
     # Step 4: Save
     out_path = os.path.join(output_dir, "features.npz")
-    save_features(out_path, features, labels, image_paths, class_names)
+    save_features(out_path, features, labels, image_paths, class_names,
+                  model=config["model"]["name"])
     saved("features.npz", out_path)
 
     # Step 5: Record how these embeddings were produced. batch_size and

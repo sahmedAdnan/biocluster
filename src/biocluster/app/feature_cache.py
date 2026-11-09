@@ -21,14 +21,17 @@ Layout
         <fingerprint>.npz   features + labels + paths + class names
 
 The .npz files use biocluster.utils.io.save_features / load_features, the same
-format biocluster-extract writes, so a features.npz produced on a rented cloud
-GPU can be dropped straight in.
+format biocluster-extract writes. Files produced elsewhere are added with
+import_npz.
 """
 
 import hashlib
 import json
 import os
+import re
 import time
+
+import numpy as np
 
 CACHE_DIR = os.path.join(os.path.expanduser("~"), "BioCluster", "feature_cache")
 INDEX     = os.path.join(CACHE_DIR, "index.json")
@@ -92,19 +95,133 @@ def load(fp: str):
         return None
 
 
+def _write(fp: str, features, labels, image_paths, class_names, meta: dict = None):
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    from biocluster.utils.io import save_features
+    save_features(path_for(fp), features,
+                  list(labels) if labels is not None else [],
+                  list(image_paths),
+                  list(class_names) if class_names is not None else [],
+                  model=(meta or {}).get("model"))
+    _index_put(fp, meta or {}, features.shape)
+
+
 def save(fp: str, features, labels, image_paths, class_names, meta: dict = None):
     """Write an entry plus its index record. Never raises -- a cache failure
     must not take down a run that already succeeded."""
     try:
-        os.makedirs(CACHE_DIR, exist_ok=True)
-        from biocluster.utils.io import save_features
-        save_features(path_for(fp), features,
-                      list(labels) if labels is not None else [],
-                      list(image_paths),
-                      list(class_names) if class_names is not None else [])
-        _index_put(fp, meta or {}, features.shape)
+        _write(fp, features, labels, image_paths, class_names, meta)
     except Exception as e:
         print(f"[cache] could not write entry {fp}: {e}")
+
+
+def _match_keys(paths, depth: int):
+    keys = []
+    for p in paths:
+        parts = [s for s in re.split(r"[\\/]+", str(p)) if s]
+        keys.append("/".join(parts[-depth:]).casefold())
+    return keys
+
+
+def match_to_folder(file_paths, folder_paths) -> np.ndarray:
+    """Return the row order of `file_paths` that aligns with `folder_paths`.
+
+    Images are matched by class folder and file name, then by file name alone.
+    Raises ValueError if the two lists do not contain the same images.
+    """
+    for depth in (2, 1):
+        a, b = _match_keys(file_paths, depth), _match_keys(folder_paths, depth)
+        if len(set(a)) != len(a) or len(set(b)) != len(b) or set(a) != set(b):
+            continue
+        pos = {k: i for i, k in enumerate(a)}
+        return np.array([pos[k] for k in b], dtype=int)
+
+    a, b = set(_match_keys(file_paths, 2)), _match_keys(folder_paths, 2)
+    missing = [p for p, k in zip(folder_paths, b) if k not in a]
+    extra = len(a - set(b))
+    lines = ["The embeddings in this file do not belong to the images in this folder."]
+    if missing:
+        lines.append(f"{len(missing):,} image(s) in the folder have no embedding in the "
+                     f"file, for example {os.path.basename(str(missing[0]))}.")
+    if extra:
+        lines.append(f"{extra:,} embedding(s) in the file have no image in the folder.")
+    if not missing and not extra:
+        lines.append("Some images share the same folder and file name, so they "
+                     "cannot be told apart.")
+    lines.append("Choose the folder the embeddings were made from, with no images "
+                 "added or removed.")
+    raise ValueError("\n".join(lines))
+
+
+def _file_model(npz_path: str, data) -> str:
+    """Model name recorded in the file, its extraction_meta.json, or a
+    "<dataset>__<model>.npz" file name; None if absent."""
+    if "model" in data.files:
+        return str(data["model"])
+    sidecar = os.path.join(os.path.dirname(npz_path), "extraction_meta.json")
+    if os.path.basename(npz_path) == "features.npz" and os.path.exists(sidecar):
+        try:
+            with open(sidecar, encoding="utf-8") as f:
+                return json.load(f).get("model") or None
+        except Exception:
+            pass
+    stem = os.path.splitext(os.path.basename(npz_path))[0]
+    return stem.split("__")[-1] if "__" in stem else None
+
+
+def import_npz(npz_path: str, model: str, scans, opts: dict = None,
+               expected_dim: int = None, known_models=(), meta: dict = None) -> dict:
+    """Store an external embedding file as cache entries for a local folder.
+
+    `scans` holds one (image_paths, labels, class_names) tuple per folder scan;
+    each scan orders the images differently and gets its own entry.
+    Returns {"n_images", "entries", "normalized"}. Raises ValueError on mismatch.
+    """
+    try:
+        data = np.load(npz_path, allow_pickle=True)
+        features = np.asarray(data["features"], dtype=np.float32)
+        file_paths = [str(p) for p in data["paths"].tolist()]
+    except KeyError as e:
+        raise ValueError(f"This is not a BioCluster embedding file: it has no {e} array.")
+    except Exception as e:
+        raise ValueError(f"Could not read the file: {e}")
+    if features.ndim != 2 or len(features) != len(file_paths):
+        raise ValueError("The file is damaged: it does not hold one embedding per image.")
+
+    named = _file_model(npz_path, data)
+    if named and named in known_models and named != model:
+        raise ValueError(f"This file holds {named} embeddings, but the Model box is set "
+                         f"to {model}. Choose {named} and import again.")
+    if expected_dim and features.shape[1] != expected_dim:
+        raise ValueError(f"These embeddings have {features.shape[1]} numbers per image, but "
+                         f"{model} makes {expected_dim}. They come from a different model.")
+
+    norms = np.linalg.norm(features, axis=1, keepdims=True)
+    normalized = not np.allclose(norms, 1.0, atol=1e-3)
+    if normalized:
+        features = features / np.maximum(norms, 1e-12)
+
+    scans = [s for s in scans if s and len(s[0])]
+    if not scans:
+        raise ValueError("No images found in the selected folder.")
+    written, first_error = set(), None
+    for image_paths, labels, class_names in scans:
+        try:
+            order = match_to_folder(file_paths, image_paths)
+        except ValueError as e:
+            first_error = first_error or e
+            continue
+        fp = fingerprint(model, image_paths, opts=opts)
+        if fp in written:
+            continue
+        _write(fp, features[order], labels, image_paths, class_names,
+               meta={**(meta or {}), "model": model,
+                     "imported_from": os.path.abspath(npz_path),
+                     "n_images": int(len(image_paths))})
+        written.add(fp)
+    if not written:
+        raise first_error
+    return {"n_images": int(len(features)), "entries": len(written), "normalized": bool(normalized)}
 
 
 def _read_index() -> dict:

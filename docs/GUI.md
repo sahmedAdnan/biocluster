@@ -130,6 +130,19 @@ The GPU, driver and batch size change the extracted embeddings very slightly,
 and that can noticeably change the clustering. To reproduce the paper, start
 from our extracted embeddings, as described in [REPRODUCING.md](REPRODUCING.md).
 
+**Import embeddings (.npz)** uses embeddings made earlier or on another
+computer, for example our published DK-Moth embeddings, instead of extracting
+them here:
+
+1. **Browse Image Folder** and choose the folder the embeddings were made from.
+2. Set **Model** to the model that made them.
+3. Click **Import embeddings (.npz)** and choose the file.
+
+The app matches each embedding to its image by species folder and file name.
+It refuses the file if any image is missing or extra, or if the file belongs to
+another model. **Run Pipeline** then skips extraction for that folder. Only
+import files from a source you trust.
+
 ### 3. Dimensionality Reduction
 
 Reduction only affects clustering. Naming always uses the full embeddings.
@@ -347,4 +360,5 @@ images.
 | **Annotate Clusters** is greyed out | Run the pipeline first. |
 | "Annotation unavailable" | DINOv2 and DINOv3 cannot name clusters. Re-run with a BioCLIP or CLIP model. |
 | "No labels available" | *Folder labels* needs the labels box ticked before the run. Tick it and re-run, or choose a taxonomy CSV. |
+| "Import failed" | The file and the folder must hold exactly the same images, and **Model** must match the file. The message says which check failed. |
 | The app does not start | Read `~/BioCluster/startup_error.log`. |

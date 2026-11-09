@@ -6,7 +6,7 @@ There are two ways to reproduce the numbers in the
 | route | what you get | what you need |
 |---|---|---|
 | [A. Embeddings + command line](#a-exact-numbers-from-the-embeddings) | exactly the published numbers | our extracted embeddings; no GPU |
-| [B. Desktop app](#b-the-desktop-app) | the published settings, run on embeddings extracted on your computer | the images and the model; a GPU helps |
+| [B. Desktop app](#b-the-desktop-app) | exactly the published numbers when you import our embeddings; close to them when the app extracts its own | the images; a GPU only for extracting |
 
 > [!IMPORTANT]
 > Extracted embeddings are not bit-identical across GPUs, drivers and batch
@@ -14,7 +14,8 @@ There are two ways to reproduce the numbers in the
 > clustering downstream, so re-extracting the images will not always give the
 > published numbers. We provide our extracted embeddings on
 > [Google Drive](https://drive.google.com/drive/folders/1oHjNn059xV0iR30gyL6r-PbUkzpxcbMO?usp=sharing).
-> Start from them (route A) to reproduce the paper exactly.
+> Start from them, with the command line (route A) or the app's
+> **Import embeddings** (route B), to reproduce the paper exactly.
 
 ## What to download
 
@@ -71,12 +72,16 @@ choose the data:
 
 1. **Browse Image Folder**: one subsample, for example `DK-moth_run01_seed42`.
 2. Tick **Folder has Ground Truth Labels (Subfolders)**.
-3. **Run Pipeline**.
-4. In section 7, set **Candidate species from** to *Taxonomy CSV* and choose
+3. Click **Import embeddings (.npz)** and choose that subsample's BioCLIP 2.5
+   file from the Drive. This gives the exact published numbers. If you skip it,
+   the app extracts the embeddings itself (see the note at the top).
+4. **Run Pipeline**. It uses the imported embeddings and skips extraction.
+5. In section 7, set **Candidate species from** to *Taxonomy CSV* and choose
    `DK-Moth_subsample248_classes_with_family.csv`. Leave the weights and
    thresholds as they are.
-5. **Annotate Clusters**. The status line shows the tier counts and both
-   accuracies.
+6. **Annotate Clusters**. The status line shows the tier counts and both
+   accuracies. This step loads the model's text encoder, so the weights are
+   downloaded the first time.
 
 Use the taxonomy CSV, not *Folder labels*. The paper's annotation numbers were
 made with the CSV, and the folder names give slightly different results.
@@ -97,7 +102,8 @@ apply a run's settings:
    Filter by dataset, select a run, and click **Apply settings**. The model,
    reduction, clustering, their parameters and the seed are loaded into the
    panel. The image folder is not, because the stored paths are the authors'.
-5. Choose your copy of the same dataset, tick the labels box, and run.
+5. Choose your copy of the same dataset and tick the labels box. Import its
+   embeddings from the Drive with **Import embeddings (.npz)**, then run.
 
 The run history does not store annotation settings. The paper used the app's
 defaults: weights S 0.35, P 0.25, A 0.25, T 0.15, and thresholds 0.55 and 0.70.
@@ -107,7 +113,8 @@ defaults: weights S 0.35, P 0.25, A 0.25, T 0.15, and thresholds 0.55 and 0.70.
 BioCLIP 2.5 (ViT-H/14), UMAP (20 dimensions, `n_neighbors` 15, `min_dist`
 0.15, cosine), HDBSCAN (`min_cluster_size` 4, `min_samples` 3, leaf), seed 42,
 candidates from the taxonomy CSV, default weights and thresholds. Starting from
-our embeddings (route A) gives exactly these numbers.
+our embeddings gives exactly these numbers, with the command line or with the
+app's import.
 
 | subsample | ARI | NMI | Hungarian | clusters | noise % | auto | review | human | cluster acc | image acc |
 |---|---|---|---|---|---|---|---|---|---|---|

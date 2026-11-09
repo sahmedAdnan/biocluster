@@ -103,5 +103,6 @@ biocluster-cluster  --config $CFG
 biocluster-evaluate --config $CFG
 ```
 
-To load `run_history.csv` into the desktop app and re-apply any logged run's
-settings, see [docs/REPRODUCING.md](../docs/REPRODUCING.md).
+In the desktop app, use **Import embeddings (.npz)** in section 2 instead: no
+renaming is needed. To load `run_history.csv` into the app and re-apply any
+logged run's settings, see [docs/REPRODUCING.md](../docs/REPRODUCING.md).

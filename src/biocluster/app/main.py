@@ -79,14 +79,15 @@ _HISTORY_COLUMNS = [
 #                CLIP does not and fails to load without this.
 #   has_text   : model has a text encoder, so the annotation step can run.
 #                DINOv2 and DINOv3 are vision-only.
+#   dim        : embedding size, checked when embeddings are imported.
 # ---------------------------------------------------------------------------
 _MODEL_SPECS = {
-    "bioclip2.5": {"pretrained": "hf-hub:imageomics/bioclip-2.5-vith14",  "has_text": True},
-    "bioclip2":   {"pretrained": "hf-hub:imageomics/bioclip-2",           "has_text": True},
-    "bioclip":    {"pretrained": "hf-hub:imageomics/bioclip",             "has_text": True},
-    "clip":       {"pretrained": "openai", "arch": "ViT-L-14",            "has_text": True},
-    "dinov2":     {"pretrained": "vit_large_patch14_dinov2.lvd142m",      "has_text": False},
-    "dinov3":     {"pretrained": "vit_huge_plus_patch16_dinov3.lvd1689m", "has_text": False},
+    "bioclip2.5": {"pretrained": "hf-hub:imageomics/bioclip-2.5-vith14",  "has_text": True,  "dim": 1024},
+    "bioclip2":   {"pretrained": "hf-hub:imageomics/bioclip-2",           "has_text": True,  "dim": 768},
+    "bioclip":    {"pretrained": "hf-hub:imageomics/bioclip",             "has_text": True,  "dim": 512},
+    "clip":       {"pretrained": "openai", "arch": "ViT-L-14",            "has_text": True,  "dim": 768},
+    "dinov2":     {"pretrained": "vit_large_patch14_dinov2.lvd142m",      "has_text": False, "dim": 1024},
+    "dinov3":     {"pretrained": "vit_huge_plus_patch16_dinov3.lvd1689m", "has_text": False, "dim": 1280},
 }
 
 
@@ -137,6 +138,36 @@ def extraction_opts(key: str, global_pool: str = None, img_size: int = None) -> 
     if not model_is_timm(key):
         return {}
     return {"global_pool": global_pool or "", "img_size": img_size or ""}
+
+
+def scan_folder(folder: str, has_labels: bool):
+    """Return (image_paths, labels, class_names) in the order used by the cache key."""
+    if has_labels:
+        try:
+            extensions = ["jpg", "jpeg", "png", "webp"]
+            image_paths, true_labels, class_names = load_imagefolder(folder, extensions)
+            return image_paths, np.array(true_labels), class_names
+        except Exception as e:
+            raise ValueError(f"Could not load labels. Ensure your folder has subfolders representing classes. Error: {str(e)}")
+    extensions = ('*.jpg', '*.jpeg', '*.png', '*.webp')
+    image_paths = []
+    for ext in extensions:
+        image_paths.extend(glob.glob(os.path.join(folder, '**', ext), recursive=True))
+    return sorted(image_paths), None, None
+
+
+def import_embeddings(npz_path: str, folder: str, model: str, global_pool: str = None) -> dict:
+    """Add an external embedding file to the cache for `folder`."""
+    scans = []
+    for labelled in (True, False):
+        try:
+            scans.append(scan_folder(folder, labelled))
+        except ValueError:
+            pass
+    return feature_cache.import_npz(
+        npz_path, model, scans, opts=extraction_opts(model, global_pool),
+        expected_dim=_MODEL_SPECS.get(model, {}).get("dim"), known_models=tuple(_MODEL_SPECS),
+        meta={"folder": folder, "global_pool": global_pool or "default", "img_size": "native"})
 
 
 def _run_identity(row: dict):
@@ -305,22 +336,7 @@ class PipelineWorker(QThread):
             # skips extraction while any change correctly invalidates it.
             self.progress.emit(10, "Scanning folder...")
 
-            true_labels = None
-            class_names = None
-
-            if self.has_labels:
-                try:
-                    extensions = ["jpg", "jpeg", "png", "webp"]
-                    image_paths, true_labels, class_names = load_imagefolder(self.folder, extensions)
-                    true_labels = np.array(true_labels)
-                except Exception as e:
-                    raise ValueError(f"Could not load labels. Ensure your folder has subfolders representing classes. Error: {str(e)}")
-            else:
-                extensions = ('*.jpg', '*.jpeg', '*.png', '*.webp')
-                image_paths = []
-                for ext in extensions:
-                    image_paths.extend(glob.glob(os.path.join(self.folder, '**', ext), recursive=True))
-                image_paths = sorted(image_paths)
+            image_paths, true_labels, class_names = scan_folder(self.folder, self.has_labels)
 
             if not image_paths:
                 raise ValueError("No images found in the selected folder.")
@@ -850,6 +866,15 @@ class MainWindow(QMainWindow):
         self.lbl_pool = QLabel("Pooling:")
         extract_layout.addRow(self.lbl_pool, self.combo_pool)
         self.combo_model.currentIndexChanged.connect(self._update_pool_visibility)
+        self.btn_import_emb = QPushButton("Import embeddings (.npz)...")
+        self.btn_import_emb.setMinimumHeight(30)
+        self.btn_import_emb.setToolTip(
+            "Use embeddings extracted earlier or on another computer instead of "
+            "extracting them here.\n\n"
+            "Choose the image folder first and set Model to the model that made "
+            "the file. Run Pipeline then skips extraction for that folder.")
+        self.btn_import_emb.clicked.connect(self.import_embeddings_file)
+        extract_layout.addRow(self.btn_import_emb)
         extract_group.setLayout(extract_layout)
 
         reduce_group = QGroupBox("3. Dimensionality Reduction")
@@ -858,8 +883,6 @@ class MainWindow(QMainWindow):
         self.combo_reduction = _ComboBox()
         self.combo_reduction.setMinimumHeight(30)
         self.combo_reduction.addItems(["pca", "umap", "pca+umap", "none"])
-        # Start on the DK-Moth paper setting
-        # (configs/paper/dkmoth_sub/backbone_bioclip2.5.yaml).
         self.combo_reduction.setCurrentText("umap")
         self.combo_reduction.currentTextChanged.connect(self._update_reduction_params)
         self.combo_reduction.currentTextChanged.connect(self._update_seed_scope)
@@ -1573,7 +1596,7 @@ class MainWindow(QMainWindow):
                 "cluster_selection_method:", self._create_combobox(["eom", "leaf"], default_idx=1),
                 "How clusters are pulled from the hierarchy. 'eom' (excess of "
                 "mass) gives fewer, larger clusters; 'leaf' gives finer, more "
-                "numerous clusters (default, as in the DK-Moth setting).",
+                "numerous clusters (default).",
                 self.clustering_widgets)
 
         elif method == "gmm":
@@ -1615,7 +1638,7 @@ class MainWindow(QMainWindow):
         self.lbl_seed_scope.setStyleSheet(f"color: {color}; font-style: italic; font-size: 11px;")
 
     def _set_sidebar_enabled(self, enabled: bool):
-        for w in (self.btn_browse, self.chk_labels, self.combo_model,
+        for w in (self.btn_browse, self.chk_labels, self.combo_model, self.btn_import_emb,
                   self.combo_reduction, self.combo_clustering,
                   self.combo_device, self.spin_batch, self.spin_workers,
                   self.spin_seed):
@@ -1633,6 +1656,41 @@ class MainWindow(QMainWindow):
             self.folder_path = folder
             self.lbl_folder.setText(folder)
             self.btn_run.setEnabled(True)
+
+    def import_embeddings_file(self):
+        if not self.folder_path:
+            QMessageBox.information(self, "Choose the images first",
+                "Click Browse Image Folder and choose the folder the embeddings "
+                "were made from, then import.")
+            return
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Import embeddings", "", "Embeddings (*.npz)")
+        if not path:
+            return
+        if QMessageBox.question(
+                self, "Import embeddings",
+                f"Use {os.path.basename(path)} as the {self.combo_model.currentText()} "
+                f"embeddings of\n{self.folder_path}?\n\n"
+                "The file must come from this model: embeddings from another model "
+                "give wrong clusters and wrong species names. Only import files from "
+                "a source you trust.",
+                QMessageBox.Yes | QMessageBox.Cancel) != QMessageBox.Yes:
+            return
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            info = import_embeddings(path, self.folder_path, self.combo_model.currentData(),
+                                     global_pool=self.combo_pool.currentData() or None)
+        except Exception as e:
+            QApplication.restoreOverrideCursor()
+            QMessageBox.warning(self, "Import failed", str(e))
+            return
+        QApplication.restoreOverrideCursor()
+        note = ("\n\nThe embeddings were not unit length, so they were normalised, "
+                "as the app does when it extracts." if info["normalized"] else "")
+        QMessageBox.information(
+            self, "Embeddings imported",
+            f"{info['n_images']:,} embeddings imported. Run Pipeline now uses them "
+            f"for this folder and skips extraction.{note}")
 
     # -------------------- Annotation --------------------
 
